@@ -19,16 +19,18 @@ export default function App() {
   const [selectedStation, setSelectedStation] = useState(null)
   const [highlightedId, setHighlightedId] = useState(null)
   const [activeLineId, setActiveLineId] = useState(null)
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 768
+  )
 
   const { query, setQuery, results } = useSearch(uniqueStations, transitLines)
   const { isFavorite, toggle: toggleFavorite } = useFavorites()
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
+    const mq = window.matchMedia('(max-width: 767px)')
+    const handler = (e) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
   }, [])
 
   const handleSearchSelect = useCallback((item) => {
@@ -56,25 +58,28 @@ export default function App() {
 
   const handleLineClick = useCallback((lineId) => {
     setActiveLineId(prev => prev === lineId ? null : lineId)
+    if (lineId === null) return
     setSelectedStation(null)
     setHighlightedId(null)
   }, [])
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-[Cairo]">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col transition-colors duration-300"
+         style={{ fontFamily: "'Cairo', sans-serif" }}>
+
       {/* Alert banners */}
       <AlertBanner alerts={alerts} />
 
       {/* Header */}
       <Header isDark={isDark} onToggleDark={() => setIsDark(d => !d)} />
 
-      <main className="flex-1 flex flex-col max-w-7xl w-full mx-auto px-4 py-4 gap-4">
+      <main className="flex-1 flex flex-col max-w-7xl w-full mx-auto px-4 pt-3 pb-4 gap-3">
 
         {/* Search */}
         <motion.div
-          initial={{ opacity: 0, y: -12 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
         >
           <SearchBox
             query={query}
@@ -88,7 +93,7 @@ export default function App() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.18 }}
+          transition={{ delay: 0.15, duration: 0.3 }}
         >
           <LineLegend
             lines={transitLines}
@@ -98,18 +103,16 @@ export default function App() {
           />
         </motion.div>
 
-        {/* Map + card row */}
-        <div
-          className="flex-1 flex gap-4 min-h-0"
-          style={{ height: 'clamp(380px, 62vh, 640px)' }}
+        {/* Map + card */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.4 }}
+          className="flex-1 flex gap-3 min-h-0"
+          style={{ height: 'clamp(400px, 64vh, 660px)' }}
         >
           {/* Map */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.12, duration: 0.35 }}
-            className="flex-1 min-w-0"
-          >
+          <div className="flex-1 min-w-0">
             <SvgTransitMap
               stations={uniqueStations}
               lines={transitLines}
@@ -117,10 +120,11 @@ export default function App() {
               highlightedStationId={highlightedId}
               activeLineId={activeLineId}
               onStationClick={handleMapStationClick}
+              isDark={isDark}
             />
-          </motion.div>
+          </div>
 
-          {/* Station card – desktop only */}
+          {/* Station card — desktop */}
           {!isMobile && (
             <div className="w-72 flex-shrink-0 self-start">
               <AnimatePresence mode="wait">
@@ -136,38 +140,43 @@ export default function App() {
                 ) : (
                   <motion.div
                     key="empty"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="glass rounded-2xl border border-slate-200 dark:border-slate-700 p-6
-                               text-center text-slate-400 dark:text-slate-500"
+                    initial={{ opacity: 0, scale: 0.97 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.97 }}
+                    className="bg-white dark:bg-slate-800 rounded-2xl
+                               border border-slate-200/80 dark:border-slate-700/60
+                               shadow-soft p-6 text-center"
                   >
-                    <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 mx-auto mb-3
-                                    flex items-center justify-center text-3xl">
-                      🗺️
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100
+                                    dark:from-blue-900/20 dark:to-blue-800/20
+                                    mx-auto mb-3 flex items-center justify-center">
+                      <span className="text-2xl">🗺️</span>
                     </div>
-                    <p className="text-sm font-medium leading-relaxed">
-                      اضغط على أي محطة<br />لعرض تفاصيلها
+                    <p className="text-sm font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
+                      اضغط على أي محطة
+                    </p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                      لعرض تفاصيل الخطوط والمسارات
                     </p>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
           )}
-        </div>
+        </motion.div>
 
-        {/* Usage hint */}
+        {/* Footer hint */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-center text-xs text-slate-400 dark:text-slate-600 font-medium pb-2 select-none"
+          transition={{ delay: 0.6 }}
+          className="text-center text-xs text-slate-400/70 dark:text-slate-600 font-medium select-none"
         >
-          اسحب الخريطة للتنقل · استخدم عجلة الفأرة أو إصبعين للتكبير · اضغط محطة لعرض تفاصيلها
+          اسحب للتنقل · عجلة الفأرة أو إصبعان للتكبير · اضغط محطة لتفاصيلها
         </motion.p>
       </main>
 
-      {/* Bottom sheet – mobile only */}
+      {/* Bottom sheet — mobile */}
       {isMobile && (
         <BottomSheet
           station={selectedStation}

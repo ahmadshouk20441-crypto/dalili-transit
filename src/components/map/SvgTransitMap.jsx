@@ -1,14 +1,13 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
 import StationOverlay from './StationOverlay'
 import ZoomControls from './ZoomControls'
+import MapSkeleton from './MapSkeleton'
 
-// SVG canvas dimensions (from viewBox="0 0 2250 1799.999925")
 const SVG_W = 2250
 const SVG_H = 1800
-
-const MIN_SCALE = 0.25
+const MIN_SCALE = 0.22
 const MAX_SCALE = 5
-const ZOOM_STEP = 0.35
+const ZOOM_STEP = 0.32
 
 export default function SvgTransitMap({
   stations,
@@ -17,20 +16,20 @@ export default function SvgTransitMap({
   highlightedStationId,
   activeLineId,
   onStationClick,
+  isDark,
 }) {
   const containerRef = useRef(null)
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 })
   const [isDragging, setIsDragging] = useState(false)
+  const [mapLoaded, setMapLoaded] = useState(false)
   const dragStart = useRef(null)
+  const hasFitted = useRef(false)
 
-  // Initial fit: scale map to container on mount
-  useEffect(() => {
+  const fitToContainer = useCallback(() => {
     const el = containerRef.current
     if (!el) return
     const { width, height } = el.getBoundingClientRect()
-    const scaleX = width / SVG_W
-    const scaleY = height / SVG_H
-    const scale = Math.min(scaleX, scaleY, 0.55)
+    const scale = Math.min(width / SVG_W, height / SVG_H) * 0.97
     setTransform({
       x: (width - SVG_W * scale) / 2,
       y: (height - SVG_H * scale) / 2,
@@ -38,11 +37,31 @@ export default function SvgTransitMap({
     })
   }, [])
 
-  // Pan to selected station
+  // Fit once map image has loaded so dimensions are known
+  useEffect(() => {
+    if (mapLoaded && !hasFitted.current) {
+      hasFitted.current = true
+      fitToContainer()
+    }
+  }, [mapLoaded, fitToContainer])
+
+  // Re-fit on container resize
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => {
+      if (!hasFitted.current) return
+      // Don't re-fit if user has panned/zoomed
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  // Smooth pan to selected station
   useEffect(() => {
     if (!selectedStation || !containerRef.current) return
     const { width, height } = containerRef.current.getBoundingClientRect()
-    const targetScale = Math.max(transform.scale, 1.2)
+    const targetScale = Math.max(transform.scale, 1.4)
     const cx = selectedStation.cx ?? (selectedStation.x + 159)
     const cy = selectedStation.cy ?? (selectedStation.y + 34)
     setTransform({
@@ -60,27 +79,13 @@ export default function SvgTransitMap({
       const oy = clientY != null ? clientY - (rect?.top ?? 0) : (rect?.height ?? 0) / 2
       const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, prev.scale + delta))
       const ratio = newScale / prev.scale
-      return {
-        scale: newScale,
-        x: ox - (ox - prev.x) * ratio,
-        y: oy - (oy - prev.y) * ratio,
-      }
+      return { scale: newScale, x: ox - (ox - prev.x) * ratio, y: oy - (oy - prev.y) * ratio }
     })
   }, [])
 
-  const resetView = useCallback(() => {
-    const el = containerRef.current
-    if (!el) return
-    const { width, height } = el.getBoundingClientRect()
-    const scale = Math.min(width / SVG_W, height / SVG_H, 0.55)
-    setTransform({
-      x: (width - SVG_W * scale) / 2,
-      y: (height - SVG_H * scale) / 2,
-      scale,
-    })
-  }, [])
+  const resetView = useCallback(() => fitToContainer(), [fitToContainer])
 
-  // Mouse wheel zoom
+  // Wheel zoom
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -114,7 +119,7 @@ export default function SvgTransitMap({
     dragStart.current = null
   }, [])
 
-  // Touch pinch zoom
+  // Touch pinch
   const lastPinch = useRef(null)
   const onTouchStart = useCallback((e) => {
     if (e.touches.length === 2) {
@@ -122,8 +127,6 @@ export default function SvgTransitMap({
       lastPinch.current = {
         dist: Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY),
         scale: transform.scale,
-        mx: (a.clientX + b.clientX) / 2,
-        my: (a.clientY + b.clientY) / 2,
       }
     }
   }, [transform.scale])
@@ -142,14 +145,19 @@ export default function SvgTransitMap({
 
   const zoomPercent = Math.round(transform.scale * 100)
 
+  // Dark mode: invert + hue-rotate preserves line colors, turns white→dark
+  const mapFilter = isDark
+    ? 'invert(1) hue-rotate(180deg) brightness(0.88) saturate(1.15)'
+    : 'none'
+
   return (
     <div className="relative w-full h-full">
-      {/* Map container */}
       <div
         ref={containerRef}
         className={`w-full h-full overflow-hidden rounded-2xl
-                    bg-white dark:bg-slate-900
-                    border border-slate-200 dark:border-slate-700
+                    bg-slate-100 dark:bg-slate-900
+                    border border-slate-200/80 dark:border-slate-700/80
+                    shadow-soft
                     ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -158,29 +166,40 @@ export default function SvgTransitMap({
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
       >
+        {/* Loading skeleton */}
+        {!mapLoaded && <MapSkeleton />}
+
         {/* Transformed layer */}
         <div
           style={{
             transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
             transformOrigin: '0 0',
             willChange: 'transform',
-            transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)',
+            transition: isDragging ? 'none' : 'transform 0.28s cubic-bezier(0.22,1,0.36,1)',
             width: SVG_W,
             height: SVG_H,
             position: 'relative',
+            opacity: mapLoaded ? 1 : 0,
           }}
         >
-          {/* Raster map background */}
+          {/* Map image */}
           <img
             src="/dalili-map.svg"
             alt="خريطة نقل حلب"
             width={SVG_W}
             height={SVG_H}
-            style={{ display: 'block', pointerEvents: 'none', userSelect: 'none' }}
+            onLoad={() => setMapLoaded(true)}
+            style={{
+              display: 'block',
+              pointerEvents: 'none',
+              userSelect: 'none',
+              filter: mapFilter,
+              transition: 'filter 0.4s ease',
+            }}
             draggable={false}
           />
 
-          {/* Interactive station overlay (SVG layer on top) */}
+          {/* Interactive overlay */}
           <svg
             viewBox={`0 0 ${SVG_W} ${SVG_H}`}
             width={SVG_W}
@@ -194,6 +213,7 @@ export default function SvgTransitMap({
               highlightedId={highlightedStationId}
               activeLineId={activeLineId}
               onStationClick={onStationClick}
+              isDark={isDark}
             />
           </svg>
         </div>
