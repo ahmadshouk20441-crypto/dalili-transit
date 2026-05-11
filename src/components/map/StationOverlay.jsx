@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react'
-import { BADGE_W, BADGE_H } from '../../data/stations'
 
-const DOT_R = 11        // normal dot radius
-const DOT_R_ACTIVE = 15 // selected/highlighted dot radius
+const DOT_R = 18        // normal dot radius (SVG units; station circles are ~30 in SVG space)
+const DOT_R_ACTIVE = 24 // selected/highlighted dot radius
 
 function getLineColor(lineId, lines) {
   return lines.find(l => l.id === lineId)?.color ?? '#64748b'
@@ -70,11 +69,11 @@ function StationHit({ station, lines, isSelected, isHighlighted, isActive, onCli
         />
       )}
 
-      {/* Invisible hit rect (full badge area) */}
+      {/* Invisible hit rect centered on dot */}
       <rect
-        x={station.x} y={station.y}
-        width={BADGE_W} height={BADGE_H}
-        fill="transparent" rx="4"
+        x={cx - 40} y={cy - 40}
+        width={80} height={80}
+        fill="transparent"
       />
 
       {/* Hover / selected label tooltip */}

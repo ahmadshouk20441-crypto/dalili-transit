@@ -19,6 +19,7 @@ export default function SvgTransitMap({
   isDark,
 }) {
   const containerRef = useRef(null)
+  const imgRef = useRef(null)
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 })
   const [isDragging, setIsDragging] = useState(false)
   const [mapLoaded, setMapLoaded] = useState(false)
@@ -35,6 +36,11 @@ export default function SvgTransitMap({
       y: (height - SVG_H * scale) / 2,
       scale,
     })
+  }, [])
+
+  // Handle cached images: if img is already complete when mounted, fire immediately
+  useEffect(() => {
+    if (imgRef.current?.complete) setMapLoaded(true)
   }, [])
 
   // Fit once map image has loaded so dimensions are known
@@ -184,6 +190,7 @@ export default function SvgTransitMap({
         >
           {/* Map image */}
           <img
+            ref={imgRef}
             src="/dalili-map.svg"
             alt="خريطة نقل حلب"
             width={SVG_W}

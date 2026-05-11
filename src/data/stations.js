@@ -104,13 +104,14 @@ export const stations = [
   { id:'st-77', name:'الميادين',      x:1347, y:1355, lineIds:['line-maroon'],  description:'محطة الميادين' },
 ]
 
-// Badge dimensions in SVG units
-export const BADGE_W = 318
-export const BADGE_H = 68
+// Station circle bounding box in SVG units (viewBox 0 0 2250 1800)
+// Each station marker is a ~60×60 circle; (x,y) is the top-left corner.
+export const BADGE_W = 60
+export const BADGE_H = 60
 
-// Center point of each badge
+// Center point of each station circle
 export const uniqueStations = stations.map(s => ({
   ...s,
-  cx: s.x + BADGE_W / 2,   // horizontal center of badge
-  cy: s.y + BADGE_H / 2,   // vertical center of badge
+  cx: s.cx ?? (s.x + BADGE_W / 2),
+  cy: s.cy ?? (s.y + BADGE_H / 2),
 }))
