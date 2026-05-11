@@ -1,7 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react'
 import StationOverlay from './StationOverlay'
+import ZoomControls from './ZoomControls'
 
 // SVG canvas dimensions (from viewBox="0 0 2250 1799.999925")
 const SVG_W = 2250
@@ -200,34 +199,12 @@ export default function SvgTransitMap({
         </div>
       </div>
 
-      {/* Zoom controls */}
-      <div className="absolute bottom-4 left-4 flex flex-col gap-2">
-        {[
-          { icon: ZoomIn,    fn: () => zoom(ZOOM_STEP),  label: 'تكبير' },
-          { icon: ZoomOut,   fn: () => zoom(-ZOOM_STEP), label: 'تصغير' },
-          { icon: Maximize2, fn: resetView,              label: 'إعادة ضبط' },
-        ].map(({ icon: Icon, fn, label }) => (
-          <motion.button
-            key={label}
-            whileTap={{ scale: 0.88 }}
-            onClick={fn}
-            title={label}
-            className="w-10 h-10 glass rounded-xl flex items-center justify-center
-                       border border-slate-200 dark:border-slate-700 shadow-soft
-                       text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700
-                       transition-colors duration-150 cursor-pointer"
-          >
-            <Icon className="w-4 h-4" />
-          </motion.button>
-        ))}
-      </div>
-
-      {/* Scale badge */}
-      <div className="absolute bottom-4 right-4 text-xs font-semibold text-slate-500 dark:text-slate-400
-                      bg-white/80 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg backdrop-blur-sm
-                      border border-slate-200/60 dark:border-slate-700/60 select-none">
-        {zoomPercent}%
-      </div>
+      <ZoomControls
+        onZoomIn={() => zoom(ZOOM_STEP)}
+        onZoomOut={() => zoom(-ZOOM_STEP)}
+        onReset={resetView}
+        percent={zoomPercent}
+      />
     </div>
   )
 }

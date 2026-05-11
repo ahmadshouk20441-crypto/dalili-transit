@@ -1,9 +1,8 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react'
 import MapLines from './MapLines'
 import MapStations from './MapStations'
 import MapBackground from './MapBackground'
+import ZoomControls from './ZoomControls'
 
 const MIN_SCALE = 0.6
 const MAX_SCALE = 4
@@ -175,33 +174,12 @@ export default function TransitMap({
         </svg>
       </div>
 
-      {/* Zoom controls */}
-      <div className="absolute bottom-4 left-4 flex flex-col gap-2">
-        {[
-          { icon: ZoomIn, action: () => zoom(STEP), label: 'تكبير' },
-          { icon: ZoomOut, action: () => zoom(-STEP), label: 'تصغير' },
-          { icon: Maximize2, action: resetView, label: 'إعادة ضبط' },
-        ].map(({ icon: Icon, action, label }) => (
-          <motion.button
-            key={label}
-            whileTap={{ scale: 0.9 }}
-            onClick={action}
-            title={label}
-            className="w-10 h-10 glass rounded-xl flex items-center justify-center
-                       border border-slate-200 dark:border-slate-700 shadow-soft
-                       text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700
-                       transition-colors duration-150 cursor-pointer"
-          >
-            <Icon className="w-4 h-4" />
-          </motion.button>
-        ))}
-      </div>
-
-      {/* Scale hint */}
-      <div className="absolute bottom-4 right-4 text-xs text-slate-400 dark:text-slate-500
-                      bg-white/70 dark:bg-slate-800/70 px-2 py-1 rounded-lg backdrop-blur-sm">
-        {Math.round(transform.scale * 100)}%
-      </div>
+      <ZoomControls
+        onZoomIn={() => zoom(STEP)}
+        onZoomOut={() => zoom(-STEP)}
+        onReset={resetView}
+        percent={Math.round(transform.scale * 100)}
+      />
     </div>
   )
 }

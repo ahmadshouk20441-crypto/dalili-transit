@@ -1,10 +1,8 @@
-import { useRef, useCallback } from 'react'
 import { motion, AnimatePresence, useDragControls } from 'framer-motion'
-import { X, Heart, MapPin, Route, GripHorizontal } from 'lucide-react'
+import { X, Heart, MapPin, Route } from 'lucide-react'
 
 export default function BottomSheet({ station, lines, isFavorite, onToggleFavorite, onClose }) {
   const dragControls = useDragControls()
-  const constraintsRef = useRef(null)
 
   const stationLines = station?.lineIds
     .map(id => lines.find(l => l.id === id))
