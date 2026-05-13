@@ -5,9 +5,23 @@ import MapSkeleton from './MapSkeleton'
 
 const SVG_W = 2250
 const SVG_H = 1800
-const MIN_SCALE = 0.22
+const MIN_SCALE = 0.18
 const MAX_SCALE = 5
-const ZOOM_STEP = 0.32
+const ZOOM_STEP = 0.28
+
+// Tight bounding box of actual transit-network content derived from station
+// coordinate extremes in stations.js plus visual padding.
+// Leftmost station:  x=157  → pad left  →  80
+// Rightmost station: x=2046+60=2106 → pad right → 2200
+// Topmost station:   y=118         → pad top  →  60
+// Bottommost:        y=1355+60=1415 → pad bot  → 1500
+// (SVG has ~300 empty units at bottom — excluding them raises the fitted scale ~22%)
+const CX0 = 80,  CX1 = 2200   // content x range
+const CY0 = 60,  CY1 = 1500   // content y range
+const CW  = CX1 - CX0         // 2120
+const CH  = CY1 - CY0         // 1440
+const CCX = (CX0 + CX1) / 2   // 1140 — content centre x
+const CCY = (CY0 + CY1) / 2   // 780  — content centre y
 
 export default function SvgTransitMap({
   stations,
@@ -31,11 +45,21 @@ export default function SvgTransitMap({
     if (!el) return
     const { width, height } = el.getBoundingClientRect()
     if (!width || !height) return
-    const scale = Math.min(width / SVG_W, height / SVG_H) * 0.97
+
+    // Fit the content bounding box (not the full SVG) to the container with
+    // a small fixed pixel margin on every side. This eliminates the large gray
+    // space caused by the ~300 empty SVG units at the bottom of the map.
+    const PAD = 20
+    const scale = Math.min(
+      (width  - PAD * 2) / CW,
+      (height - PAD * 2) / CH,
+    )
+
+    // Translate so the content centre lands on the container centre.
     setTransform({
-      x: (width - SVG_W * scale) / 2,
-      y: (height - SVG_H * scale) / 2,
       scale,
+      x: width  / 2 - CCX * scale,
+      y: height / 2 - CCY * scale,
     })
   }, [])
 
@@ -77,7 +101,11 @@ export default function SvgTransitMap({
   useEffect(() => {
     if (!selectedStation || !containerRef.current) return
     const { width, height } = containerRef.current.getBoundingClientRect()
-    const targetScale = Math.max(transform.scale, 1.4)
+    // Zoom in to at least 1.8× the current fitted scale so the station is
+    // clearly visible, but never below scale 1.0.
+    const PAD = 20
+    const fittedScale = Math.min((width - PAD * 2) / CW, (height - PAD * 2) / CH)
+    const targetScale = Math.max(transform.scale, fittedScale * 1.8, 1.0)
     const cx = selectedStation.cx ?? (selectedStation.x + 30)
     const cy = selectedStation.cy ?? (selectedStation.y + 30)
     userInteracted.current = true
