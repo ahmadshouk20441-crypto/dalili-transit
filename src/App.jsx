@@ -90,6 +90,7 @@ export default function App() {
             onChange={setQuery}
             results={results}
             onSelect={handleSearchSelect}
+            lines={transitLines}
           />
         </motion.div>
 
