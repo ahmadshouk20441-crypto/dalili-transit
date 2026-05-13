@@ -12,7 +12,7 @@ import AlertBanner from './components/ui/AlertBanner'
 import { useDarkMode } from './hooks/useDarkMode'
 import { useSearch } from './hooks/useSearch'
 import { useFavorites } from './hooks/useFavorites'
-import { uniqueStations, transitLines, alerts } from './data'
+import { useTransitData } from './hooks/useTransitData'
 
 export default function App() {
   const [isDark, setIsDark] = useDarkMode()
@@ -23,7 +23,8 @@ export default function App() {
     typeof window !== 'undefined' && window.innerWidth < 768
   )
 
-  const { query, setQuery, results } = useSearch(uniqueStations, transitLines)
+  const { stations, lines: transitLines, alerts } = useTransitData()
+  const { query, setQuery, results } = useSearch(stations, transitLines)
   const { isFavorite, toggle: toggleFavorite } = useFavorites()
 
   useEffect(() => {
@@ -114,7 +115,7 @@ export default function App() {
           {/* Map */}
           <div className="flex-1 min-w-0">
             <SvgTransitMap
-              stations={uniqueStations}
+              stations={stations}
               lines={transitLines}
               selectedStation={selectedStation}
               highlightedStationId={highlightedId}
