@@ -3,7 +3,7 @@
  * Plugin Name:       Dalili Transit | دليلي
  * Plugin URI:        https://dalili.app
  * Description:       خريطة النقل الداخلي في مدينة حلب - إدارة المحطات والخطوط والتنبيهات
- * Version:           1.0.0
+ * Version:           2.0.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            Dalili Team
@@ -14,7 +14,7 @@
 
 defined('ABSPATH') || exit;
 
-define('DALILI_VERSION', '1.0.0');
+define('DALILI_VERSION', '2.0.0');
 define('DALILI_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('DALILI_PLUGIN_URL', plugin_dir_url(__FILE__));
 
