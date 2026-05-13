@@ -10,8 +10,8 @@ function getLineColor(lineId, lines) {
 function StationHit({ station, lines, isSelected, isHighlighted, isActive, onClick, isDark }) {
   const [hovered, setHovered] = useState(false)
   const primaryColor = getLineColor(station.lineIds[0], lines)
-  const cx = station.cx ?? (station.x + BADGE_W / 2)
-  const cy = station.cy ?? (station.y + BADGE_H / 2)
+  const cx = station.cx ?? (station.x + 30)
+  const cy = station.cy ?? (station.y + 30)
   const isEmphasised = isSelected || isHighlighted || hovered
   const r = isEmphasised ? DOT_R_ACTIVE : DOT_R
 

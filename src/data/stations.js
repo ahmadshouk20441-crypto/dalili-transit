@@ -1,6 +1,6 @@
 // Station positions extracted from dalili-map.svg
-// Each (x, y) is the TOP-LEFT corner of the station badge (318×68 units).
-// The clickable center = (x + 159, y + 34).
+// Each (x, y) is the TOP-LEFT corner of the station circle (~60×60 SVG units).
+// The clickable center = (x + 30, y + 30).
 // SVG viewBox: 0 0 2250 1800
 
 export const stations = [

@@ -25,10 +25,16 @@ export function useTransitData() {
         return r.json()
       })
       .then(({ stations, lines, alerts }) => {
+        // Ensure every station has cx/cy so StationOverlay never falls back to NaN
+        const withCenters = (stations ?? LOCAL.stations).map(s => ({
+          ...s,
+          cx: s.cx ?? (s.x + 30),
+          cy: s.cy ?? (s.y + 30),
+        }))
         setData({
-          stations: stations ?? LOCAL.stations,
-          lines:    lines    ?? LOCAL.lines,
-          alerts:   alerts   ?? LOCAL.alerts,
+          stations: withCenters,
+          lines:    lines  ?? LOCAL.lines,
+          alerts:   alerts ?? LOCAL.alerts,
           loading:  false,
           source:   'wordpress',
         })
