@@ -116,17 +116,7 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.4 }}
         >
-          <SvgTransitMap
-            stations={stations}
-            lines={transitLines}
-            selectedStation={selectedStation}
-            highlightedStationId={highlightedId}
-            activeLineId={activeLineId}
-            onStationClick={handleMapStationClick}
-            isDark={isDark}
-          />
 
-          {/* Station card overlays the map — desktop only */}
           {!isMobile && (
             <div className="absolute top-3 right-3 w-72 z-10">
               <AnimatePresence mode="wait">
