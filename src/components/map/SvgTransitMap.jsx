@@ -174,7 +174,7 @@ export default function SvgTransitMap({
     : 'none'
 
   return (
-    <div className="relative w-full h-full" style={{ minHeight: 400 }}>
+    <div className="relative w-full h-full" style={{ minHeight: 200 }}>
       <div
         ref={containerRef}
         className={`w-full h-full overflow-hidden rounded-2xl
@@ -182,7 +182,7 @@ export default function SvgTransitMap({
                     border border-slate-200/80 dark:border-slate-700/80
                     shadow-soft
                     ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-        style={{ minHeight: 400 }}
+        style={{ minHeight: 200 }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}

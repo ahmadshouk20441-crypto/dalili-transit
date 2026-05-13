@@ -65,19 +65,22 @@ export default function App() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col transition-colors duration-300"
-         style={{ fontFamily: "'Cairo', sans-serif" }}>
-
+    <div
+      className="bg-slate-50 dark:bg-slate-950 flex flex-col overflow-hidden transition-colors duration-300"
+      style={{ height: '100dvh', fontFamily: "'Cairo', sans-serif" }}
+    >
       {/* Alert banners */}
       <AlertBanner alerts={alerts} />
 
       {/* Header */}
       <Header isDark={isDark} onToggleDark={() => setIsDark(d => !d)} />
 
-      <main className="flex-1 flex flex-col max-w-7xl w-full mx-auto px-4 pt-3 pb-4 gap-3">
+      {/* Main — fills all remaining viewport height */}
+      <main className="flex-1 min-h-0 flex flex-col w-full px-3 pt-2 pb-3 gap-2">
 
         {/* Search */}
         <motion.div
+          className="flex-shrink-0"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: 'easeOut' }}
@@ -92,6 +95,7 @@ export default function App() {
 
         {/* Line legend */}
         <motion.div
+          className="flex-shrink-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.15, duration: 0.3 }}
@@ -104,32 +108,28 @@ export default function App() {
           />
         </motion.div>
 
-        {/* Map + card */}
+        {/* Map — stretches to fill all remaining space */}
         <motion.div
+          className="flex-1 min-h-0 relative"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.4 }}
-          className="flex-1 flex gap-3 min-h-0"
-          style={{ height: 'clamp(400px, 64vh, 660px)' }}
         >
-          {/* Map */}
-          <div className="flex-1 min-w-0">
-            <SvgTransitMap
-              stations={stations}
-              lines={transitLines}
-              selectedStation={selectedStation}
-              highlightedStationId={highlightedId}
-              activeLineId={activeLineId}
-              onStationClick={handleMapStationClick}
-              isDark={isDark}
-            />
-          </div>
+          <SvgTransitMap
+            stations={stations}
+            lines={transitLines}
+            selectedStation={selectedStation}
+            highlightedStationId={highlightedId}
+            activeLineId={activeLineId}
+            onStationClick={handleMapStationClick}
+            isDark={isDark}
+          />
 
-          {/* Station card — desktop */}
+          {/* Station card overlays the map — desktop only */}
           {!isMobile && (
-            <div className="w-72 flex-shrink-0 self-start">
+            <div className="absolute top-3 right-3 w-72 z-10">
               <AnimatePresence mode="wait">
-                {selectedStation ? (
+                {selectedStation && (
                   <StationCard
                     key={selectedStation.id}
                     station={selectedStation}
@@ -138,43 +138,12 @@ export default function App() {
                     onToggleFavorite={toggleFavorite}
                     onClose={handleCloseStation}
                   />
-                ) : (
-                  <motion.div
-                    key="empty"
-                    initial={{ opacity: 0, scale: 0.97 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.97 }}
-                    className="bg-white dark:bg-slate-800 rounded-2xl
-                               border border-slate-200/80 dark:border-slate-700/60
-                               shadow-soft p-6 text-center"
-                  >
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100
-                                    dark:from-blue-900/20 dark:to-blue-800/20
-                                    mx-auto mb-3 flex items-center justify-center">
-                      <span className="text-2xl">🗺️</span>
-                    </div>
-                    <p className="text-sm font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
-                      اضغط على أي محطة
-                    </p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                      لعرض تفاصيل الخطوط والمسارات
-                    </p>
-                  </motion.div>
                 )}
               </AnimatePresence>
             </div>
           )}
         </motion.div>
 
-        {/* Footer hint */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="text-center text-xs text-slate-400/70 dark:text-slate-600 font-medium select-none"
-        >
-          اسحب للتنقل · عجلة الفأرة أو إصبعان للتكبير · اضغط محطة لتفاصيلها
-        </motion.p>
       </main>
 
       {/* Bottom sheet — mobile */}
