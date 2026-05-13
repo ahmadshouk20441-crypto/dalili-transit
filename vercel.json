@@ -3,7 +3,12 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/dalili-map.svg",  "destination": "/dalili-map.svg" },
+    { "source": "/favicon.svg",     "destination": "/favicon.svg" },
+    { "source": "/icons.svg",       "destination": "/icons.svg" },
+    { "source": "/manifest.json",   "destination": "/manifest.json" },
+    { "source": "/assets/(.*)",     "destination": "/assets/$1" },
+    { "source": "/(.*)",            "destination": "/index.html" }
   ],
   "headers": [
     {
